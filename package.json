@@ -1,0 +1,30 @@
+{
+  "name": "nostache",
+  "version": "0.0.1",
+  "description": "Mustache clone for Node.js",
+  "main": "lib/runtime",
+  "scripts": {
+    "test": "nodeunit test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pepve/nostache.git"
+  },
+  "author": "Pepijn Verlaan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pepve/nostache/issues"
+  },
+  "jshintConfig": {
+    "node": true,
+    "curly": true,
+    "eqeqeq": true,
+    "immed": true,
+    "latedef": "nofunc",
+    "newcap": true,
+    "noempty": true,
+    "quotmark": "single",
+    "undef": true,
+    "unused": true
+  }
+}

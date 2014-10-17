@@ -417,7 +417,7 @@ exports.lazyLazyString = basicTest(
 	'{{foo}}',
 	{ foo: new runtime.LazyValue(function (cb) { cb(null,
 		new runtime.LazyValue(function (cb) { cb(null, 'bar'); })); }) },
-	'bar');
+	'[object Object]');
 
 exports.lazyUnescaped = basicTest(
 	'{{{foo}}}',
@@ -436,12 +436,6 @@ exports.lazyArrays2 = basicTest(
 	{ foo: [ new runtime.LazyValue(function (cb) { cb(null, { bar: 3 }); }) ] },
 	'3');
 
-exports.lazyArrays3 = basicTest(
-	'{{#foo}}{{bar}}{{/foo}}',
-	{ foo: [ new runtime.LazyValue(function (cb) { cb(null,
-		new runtime.LazyValue(function (cb) { cb(null, { bar: 3 }); })); }) ] },
-	'3');
-
 exports.lazyObjectContext = basicTest(
 	'{{#foo}}{{bar}}{{/foo}}',
 	{ foo: new runtime.LazyValue(function (cb) { cb(null, { bar: 'baz' }); }) },
@@ -451,6 +445,12 @@ exports.lazyInverted = basicTest(
 	'{{^foo}}bar{{/foo}}',
 	{ foo: new runtime.LazyValue(function (cb) { cb(null, true); }) },
 	'');
+
+var pi = Math.PI;
+exports.lazyIsNotRecomputed = basicTest(
+	'{{pi}}, {{pi}}',
+	{ pi: new runtime.LazyValue(function (cb) { cb(null, ++pi); }) },
+	'4.141592653589793, 4.141592653589793');
 
 exports.lazyErrbacksString = errorTest(
 	'{{foo.bar}}',

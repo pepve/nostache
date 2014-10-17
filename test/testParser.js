@@ -1,4 +1,4 @@
-var Parser = require('../lib/Parser');
+var Parser = process.env.NOSTACHE_COVERAGE ? require('../lib-cov/Parser') : require('../lib/Parser');
 
 function compareAst(text, expectedAst) {
 	return function (test) {

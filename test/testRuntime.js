@@ -1,5 +1,5 @@
 var domain = require('domain'),
-	runtime = require('../lib/runtime');
+	runtime = process.env.NOSTACHE_COVERAGE ? require('../lib-cov/runtime') : require('../lib/runtime');
 
 var basicNum = 0;
 function basicTest (template, view, expected) {

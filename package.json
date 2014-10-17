@@ -5,7 +5,8 @@
   "main": "lib/runtime",
   "scripts": {
     "pretest": "jshint lib",
-    "test": "nodeunit test"
+    "test": "nodeunit test",
+    "coveralls": "jscoverage lib && NOSTACHE_COVERAGE=1 nodeunit --reporter=lcov test | coveralls"
   },
   "repository": {
     "type": "git",
@@ -18,7 +19,9 @@
   },
   "devDependencies": {
     "nodeunit": "^0.9.0",
-    "jshint": "^2.5.5"
+    "jshint": "^2.5.5",
+    "jscoverage": "^0.5.6",
+    "coveralls": "^2.11.2"
   },
   "jshintConfig": {
     "node": true,

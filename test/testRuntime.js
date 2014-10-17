@@ -57,7 +57,7 @@ exports.parseError = errorTest(
 	{},
 	'Parse error in "/dir/error0": Expected key part on line 1, col 3');
 
-exports.caching = function (test) {
+exports.caching1 = function (test) {
 	test.expect(3);
 
 	runtime.injectMockFs({
@@ -82,6 +82,37 @@ exports.caching = function (test) {
 				test.equal(buffer.toString(), 'new version');
 				test.done();
 			});
+		});
+	});
+};
+
+exports.caching2 = function (test) {
+	test.expect(2);
+
+	var partial = 'foo bar';
+	var mtime = 0;
+
+	runtime.injectMockFs({
+		readFile: function (filename, options, cb) {
+			cb(null, filename === '/caching2/index' ? '{{#arr}}{{>partial}}\n{{/arr}}' : partial);
+		},
+		stat: function (filename, cb) { cb(null, { mtime: new Date(mtime) }); } });
+
+	var view = { arr: [
+		'a',
+		new runtime.LazyValue(function (cb) {
+			partial = 'baz';
+			mtime = 1;
+
+			cb(null, 'b');
+		}) ] };
+
+	runtime.render('/caching2', 'index', view, function (err, buffer) {
+		test.equal(buffer.toString(), 'foo bar\nfoo bar\n');
+
+		runtime.render('/caching2', 'index', view, function (err, buffer) {
+			test.equal(buffer.toString(), 'baz\nbaz\n');
+			test.done();
 		});
 	});
 };

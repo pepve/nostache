@@ -4,6 +4,7 @@
   "description": "Mustache clone for Node.js",
   "main": "lib/runtime",
   "scripts": {
+    "pretest": "jshint lib",
     "test": "nodeunit test"
   },
   "repository": {
@@ -14,6 +15,10 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/pepve/nostache/issues"
+  },
+  "devDependencies": {
+    "nodeunit": "^0.9.0",
+    "jshint": "^2.5.5"
   },
   "jshintConfig": {
     "node": true,

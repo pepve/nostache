@@ -1,6 +1,6 @@
 {
   "name": "nostache",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Mustache clone for Node.js",
   "main": "lib/runtime",
   "scripts": {

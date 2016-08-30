@@ -356,7 +356,7 @@ exports.sectionFunction = function (test) {
 		return 'world';
 	}) };
 
-	runtime.render('', '', view, function (err, buffer) {
+	runtime.render('/dir', 'section-function', view, function (err, buffer) {
 		test.equal(err, null);
 		test.equal(buffer.toString(), 'world');
 		test.done();
@@ -399,7 +399,7 @@ exports.sectionFunctionThrows = errorTest(
 	{ foo: new runtime.SectionFunction(function () { throw { badness: 'yes' }; }) },
 	{ badness: 'yes' });
 
-exports.SectionFunctionThrowsInArray = errorTest(
+exports.sectionFunctionThrowsInArray = errorTest(
 	'{{#array}}{{#foo}}Lorem ipsum{{/foo}}{{/array}}',
 	{ array: [ { foo: new runtime.SectionFunction(function () { throw 'badness'; }) } ] },
 	'badness');
@@ -436,7 +436,7 @@ exports.lazyArrays2 = basicTest(
 	{ foo: [ new runtime.LazyValue(function (cb) { cb(null, { bar: 3 }); }) ] },
 	'3');
 
-exports.lazyObjectContext = basicTest(
+exports.lazyContext = basicTest(
 	'{{#foo}}{{bar}}{{/foo}}',
 	{ foo: new runtime.LazyValue(function (cb) { cb(null, { bar: 'baz' }); }) },
 	'baz');
@@ -482,6 +482,103 @@ exports.lazyThrows = function (test) {
 
 	dom.run(function () {
 		runtime.render('/dir', 'asyncThrows', view, function () {
+			test.ok(false);
+			test.done();
+		});
+	});
+};
+
+//////////////////////////////////////////////////////////////////////////////////
+//// Lazy objects /////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+exports.lazyObject = function (test) {
+	runtime.injectMockFs({
+		readFile: function (filename, options, cb) { cb(null, '{{foo.bar}}'); },
+		stat: function (filename, cb) { cb(null, { mtime: new Date(0) }); } });
+
+	test.expect(3);
+
+	var view = { foo: new runtime.LazyObject(function (name, cb) {
+		test.equal(name, 'bar');
+		cb(null, 'baz');
+	}) };
+
+	runtime.render('/dir', 'lazy-object', view, function (err, buffer) {
+		test.equal(err, null);
+		test.equal(buffer.toString(), 'baz');
+		test.done();
+	});
+};
+
+exports.lazyObjectAsVariable = basicTest(
+	'{{foo}}',
+	{ foo: new runtime.LazyObject(function (name, cb) { cb(null, 'not called'); }) },
+	'[object Object]');
+
+exports.lazyObjectAsInverted = basicTest(
+	'{{^foo}}15{{/foo}}',
+	{ foo: new runtime.LazyObject(function (name, cb) { cb(null, true); }) },
+	'');
+
+exports.lazyObjectUndefined = basicTest(
+	'{{foo.bar}}',
+	{ foo: new runtime.LazyObject(function (name, cb) { cb(); }) },
+	'');
+
+exports.lazyObjectLazyValue = basicTest(
+	'{{foo.bar}}',
+	{ foo: new runtime.LazyObject(function (name, cb) { cb(null,
+		new runtime.LazyValue(function (cb) { cb(null, 'baz'); })); }) },
+	'baz');
+
+exports.lazyValueLazyObject = basicTest(
+	'{{foo.bar}}',
+	{ foo: new runtime.LazyValue(function (cb) { cb(null,
+		new runtime.LazyObject(function (name, cb) { cb(null, 'baz'); })); }) },
+	'baz');
+
+exports.lazyObjectUnescaped = basicTest(
+	'{{{foo.bar}}}',
+	{ foo: new runtime.LazyObject(function (name, cb) { cb(null, '&"\'<>'); }) },
+	'&"\'<>');
+
+exports.lazyObjectAsContext = basicTest(
+	'{{#foo}}{{bar}}{{/foo}}',
+	{ foo: new runtime.LazyObject(function (name, cb) { cb(null, 'lazy'); }), bar: 'active' },
+	'active');
+
+var nums = { e: Math.E, sqrt2: Math.SQRT2 };
+exports.lazyObjectIsNotRecomputed = basicTest(
+	'{{math.e}}, {{math.sqrt2}}, {{math.e}}, {{math.sqrt2}}',
+	{ math: new runtime.LazyObject(function (name, cb) { cb(null, nums[name]++); }) },
+	'2.718281828459045, 1.4142135623730951, 2.718281828459045, 1.4142135623730951');
+
+exports.lazyObjectErrback = errorTest(
+	'{{foo.bar}}',
+	{ foo: new runtime.LazyObject(function (name, cb) { cb('badness for ' + name); }) },
+	'badness for bar');
+
+// In other words: exceptions from LazyObjectS are your own problem
+exports.lazyObjectThrows = function (test) {
+	var template = '{{foo.bar}}';
+	var view = { foo: new runtime.LazyObject(function (name, cb) { throw 'there is no "' + name + '"'; }) };
+
+	runtime.injectMockFs({
+		readFile: function (filename, options, cb) { cb(null, template); },
+		stat: function (filename, cb) { cb(null, { mtime: new Date(0) }); } });
+
+	test.expect(1);
+
+	var dom = domain.create();
+
+	dom.on('error', function (err) {
+		test.equal(err, 'there is no "bar"');
+		test.done();
+	});
+
+	dom.run(function () {
+		runtime.render('/dir', 'lazyObjectThrows', view, function () {
 			test.ok(false);
 			test.done();
 		});
